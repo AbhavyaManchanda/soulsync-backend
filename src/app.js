@@ -25,6 +25,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/moods', moodRouter);
 app.use('/api/v1/sessions', sessionRouter);
+app.use('/api/v1/journals', journalRouter)
 
 // 1. Handle Undefined Routes (404)
 app.all(/(.*)/, (req, res, next) => {
