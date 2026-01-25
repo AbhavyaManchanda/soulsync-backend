@@ -1,0 +1,6 @@
+# .gitignore
+node_modules/
+src/config/google-key.json
+.env/MONGODB_URI
+.env/GEMINI_API_KEY
+.env
