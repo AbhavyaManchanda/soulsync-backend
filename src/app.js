@@ -7,6 +7,8 @@ const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
 const moodRouter = require('./routes/moodRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
+const journalRouter = require('./routes/journalRoutes');
+const statsRouter = require('./routes/statsRoutes');
 
 const app = express();
 
@@ -25,7 +27,8 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/moods', moodRouter);
 app.use('/api/v1/sessions', sessionRouter);
-app.use('/api/v1/journals', journalRouter)
+app.use('/api/v1/journals', journalRouter);
+app.use('/api/v1/stats', statsRouter);
 
 // 1. Handle Undefined Routes (404)
 app.all(/(.*)/, (req, res, next) => {

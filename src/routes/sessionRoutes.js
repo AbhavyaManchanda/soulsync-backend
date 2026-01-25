@@ -1,15 +1,17 @@
+// serverside/src/routes/sessionRoutes.js
 const express = require('express');
-const sessionController = require('../controllers/sessionController');
-const authMiddleware = require('../middleware/authMiddleware');
-
 const router = express.Router();
+const sessionController = require('../controllers/sessionController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.use(authMiddleware.protect); // Security gate
+// 1. Sabhi routes ke liye common protection
+router.use(protect);
 
-router.post('/chat', sessionController.chat);
-router.patch('/end/:id', sessionController.endSession);
+// 2. Chat and History Routes
+router.post('/chat', sessionController.chatWithAI);
+router.get('/my-sessions', sessionController.getUserSessions);
 
-router.get('/', sessionController.getAllSessions); // Sidebar: Get all sessions
-router.get('/:id', sessionController.getSessionDetails); // Main Window: Get specific chat session details
+// 3. Specific Session Detail (Must be at the bottom)
+router.get('/:id', sessionController.getSingleSession);
 
 module.exports = router;

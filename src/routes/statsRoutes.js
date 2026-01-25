@@ -1,8 +1,10 @@
+// src/routes/statsRoutes.js
 const express = require('express');
-const statsController = require('../controllers/statsController');
+const moodController = require('../controllers/moodController'); // Ya statsController agar alag banaya hai
 const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
-router.get('/', authMiddleware.protect, statsController.getDashboardStats);
+
+router.get('/', authMiddleware.protect, moodController.getAllMoods); // Ensure this matches your controller function
 
 module.exports = router;
