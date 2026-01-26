@@ -175,26 +175,42 @@ exports.getUserSessions = async (req, res, next) => {
   }
 };
 
-exports.endSession = async (req, res, next) => {
+// src/controllers/sessionController.js
+// src/controllers/sessionController.js
+exports.endSession = async (req, res) => {
   try {
-    const session = await Session.findOne({ _id: req.params.id, user: req.user.id });
-    if (!session) return next(new AppError('Session not found', 404));
+    const { sessionId } = req.body;
+    console.log("Backend receiving Session ID to end:", sessionId); // Debugging line
 
-    // Ask Gemini to summarize the messages array
-    const fullConversation = session.messages.map(m => `${m.role}: ${m.text}`).join('\n');
-    const summaryPrompt = `Provide a short, 3-bullet point clinical summary of this therapy session: \n${fullConversation}`;
-    
-    const summary = await geminiService.getChatResponse([], summaryPrompt);
+    // 1. Session ko update karein aur response ka wait karein
+    const updatedSession = await Session.findByIdAndUpdate(
+      sessionId,
+      { 
+        status: 'completed', 
+        isCompleted: true,
+        endedAt: Date.now() 
+      },
+      { new: true, runValidators: true } // 'new: true' se updated data milta hai
+    );
 
-    session.summary = summary;
-    session.isActive = false;
-    await session.save();
+    // 2. Agar session nahi mila toh error dein
+    if (!updatedSession) {
+      console.log("No session found with this ID in DB");
+      return res.status(404).json({ 
+        status: 'fail',
+        message: "Session ID invalid or not found in MongoDB" 
+      });
+    }
 
-    res.status(200).json({
-      status: 'success',
-      data: { summary }
+    console.log("Session successfully updated in MongoDB:", updatedSession._id);
+
+    res.status(200).json({ 
+      status: 'success', 
+      message: 'Data saved in MongoDB successfully',
+      data: updatedSession 
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error("MongoDB Update Error:", error);
+    res.status(500).json({ status: 'error', message: error.message });
   }
 };

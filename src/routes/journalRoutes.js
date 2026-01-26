@@ -6,7 +6,8 @@ const router = express.Router();
 
 router.use(authMiddleware.protect); // Security lock
 
-router.post('/', journalController.createJournalEntry);
+router.post('/', journalController.createJournal);
 router.get('/', journalController.getAllJournals);
+router.delete('/:id', authMiddleware.protect, journalController.deleteJournal); //
 
 module.exports = router;

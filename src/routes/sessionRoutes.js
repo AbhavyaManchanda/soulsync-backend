@@ -13,5 +13,6 @@ router.get('/my-sessions', sessionController.getUserSessions);
 
 // 3. Specific Session Detail (Must be at the bottom)
 router.get('/:id', sessionController.getSingleSession);
+router.post('/end', sessionController.endSession);
 
 module.exports = router;

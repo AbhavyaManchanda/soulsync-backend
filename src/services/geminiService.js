@@ -28,7 +28,7 @@ exports.getChatResponse = async (history, userMessage) => {
     // 2. Chat session start karein history ke saath
     const chat = model.startChat({
       history: formattedHistory,
-      generationConfig: { maxOutputTokens: 500 },
+      // generationConfig: { maxOutputTokens: 500 },
     });
 
     const result = await chat.sendMessage(userMessage);
@@ -92,6 +92,44 @@ exports.getTherapyResponse = async (userMessage, moodContext,chatHistoryFromDB) 
   } catch (error) {
     console.error("Gemini Therapy Error:", error);
     return "I'm here for you. Tell me more about how you're feeling.";
+  }
+};
+
+
+// exports.analyzeJournal = async (content) => {
+//   try {
+//     const prompt = `Analyze this journal entry: "${content}". 
+//     Give me a JSON response with:
+//     1. "title": A 3-word catchy title.
+//     2. "emoji": One suitable mood emoji.
+//     3. "score": Sentiment score from -1.0 to 1.0.
+//     Return ONLY JSON.`;
+
+//     const result = await model.generateContent(prompt);
+//     return JSON.parse(result.response.text()); // AI se title aur mood mil gaya!
+//   } catch (err) {
+//     return { title: "Daily Entry", emoji: "📝", score: 0 }; // Fallback
+//   }
+// };
+
+exports.analyzeJournal = async (content) => {
+  try {
+    const prompt = `You are a mental health assistant. Analyze this journal entry: "${content}". 
+    Provide a JSON response with:
+    1. "title": A 3-word catchy title representing the entry.
+    2. "emoji": One suitable emoji for the mood.
+    3. "score": A sentiment score between -1 and 1.
+    Return ONLY the JSON string.`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    
+    // JSON clean-up logic (agar AI markdown laga de)
+    const cleanJson = responseText.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleanJson);
+  } catch (err) {
+    console.error("AI Analysis Failed:", err);
+    return { title: "New Entry", emoji: "📝", score: 0 };
   }
 };
 

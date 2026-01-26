@@ -1,44 +1,73 @@
 const Journal = require('../models/journalModel');
-const aiService = require('../services/aiService'); // Google Sentiment API
-const AppError = require('../utils/appError');
+const geminiService = require('../services/geminiService');
+const { HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-exports.createJournalEntry = async (req, res, next) => {
+exports.createJournal = async (req, res) => {
   try {
-    const { title, body } = req.body;
+    const { content } = req.body;
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    // src/controllers/journalController.js mein ye add karein
 
-    if (!body) return next(new AppError('Journal body cannot be empty', 400));
 
-    // 1. Analyze Sentiment of the long-form text
-    const aiData = await aiService.analyzeText(body);
+const safetySettings = [
+  { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+  { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
 
-    // 2. Create the entry
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-2.5-flash",
+  safetySettings // 👈 Yeh line zaroori hai
+});
+
+    // 1. Gemini se Title aur Emoji maangein
+    const prompt = `Analyze this journal entry: "${content}". 
+                   Provide a short creative title and one matching emoji. 
+                   Format: Title | Emoji`;
+    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const [aiTitle, aiEmoji] = response.text().split('|');
+
+    // 2. Database mein save karein
     const newEntry = await Journal.create({
-      user: req.user.id,
-      title: title || 'Untitled Entry',
-      body,
-      sentimentScore: aiData.score,
-      moodTag: aiData.label
+      userId: req.user.id,
+      content,
+      title: aiTitle?.trim() || "Daily Reflection",
+      moodEmoji: aiEmoji?.trim() || "📔"
     });
 
-    res.status(201).json({
-      status: 'success',
-      data: { entry: newEntry }
+    res.status(201).json({ status: 'success', data: newEntry });
+  } catch (error) {
+    console.error("Gemini Journal Error:", error);
+    // Fallback: Agar AI fail ho toh entry save phir bhi honi chahiye
+    const fallbackEntry = await Journal.create({
+      userId: req.user.id,
+      content,
+      title: "New Entry",
+      moodEmoji: "📝"
     });
-  } catch (err) {
-    next(err);
+    res.status(201).json({ status: 'success', data: fallbackEntry });
   }
 };
 
-exports.getAllJournals = async (req, res, next) => {
+exports.getAllJournals = async (req, res) => {
   try {
     const journals = await Journal.find({ user: req.user.id }).sort('-createdAt');
-    
-    res.status(200).json({
-      status: 'success',
-      results: journals.length,
-      data: { journals }
-    });
+    res.status(200).json({ status: 'success', results: journals.length, data: { journals } });
   } catch (err) {
-    next(err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+};
+
+exports.deleteJournal = async (req, res) => {
+  try {
+    await Journal.findOneAndDelete({ _id: req.params.id, user: req.user.id });
+    res.status(204).json({ status: 'success', data: null });
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: err.message });
   }
 };

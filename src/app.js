@@ -9,6 +9,9 @@ const moodRouter = require('./routes/moodRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
 const journalRouter = require('./routes/journalRoutes');
 const statsRouter = require('./routes/statsRoutes');
+const yogaRoutes = require('./routes/yogaRoutes');
+const dietRoutes = require('./routes/dietRoutes');
+const blogRoutes = require('./routes/blogRoutes');
 
 const app = express();
 
@@ -29,6 +32,9 @@ app.use('/api/v1/moods', moodRouter);
 app.use('/api/v1/sessions', sessionRouter);
 app.use('/api/v1/journals', journalRouter);
 app.use('/api/v1/stats', statsRouter);
+app.use('/api/v1/yoga', yogaRoutes);
+app.use('/api/v1/diet', dietRoutes);
+app.use('/api/v1/blogs', blogRoutes);
 
 // 1. Handle Undefined Routes (404)
 app.all(/(.*)/, (req, res, next) => {
