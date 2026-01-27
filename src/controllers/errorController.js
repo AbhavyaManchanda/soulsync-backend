@@ -11,10 +11,11 @@ module.exports = (err, req, res, next) => {
       stack: err.stack
     });
   } else {
-    
+    // Isse Render ke logs mein aur frontend par asli wajah dikhegi
     res.status(err.statusCode).json({
       status: err.status,
-      message: err.isOperational ? err.message : 'Something went very wrong!'
+      message: err.message, // 👈 'Something went very wrong' hata kar ye likho test ke liye
+      error: err // 👈 Isse pura error object mil jayega
     });
   }
 };

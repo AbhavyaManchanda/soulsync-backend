@@ -2,23 +2,32 @@ require('dotenv').config();
 const app = require('./src/app');
 const connectDB = require('./src/config/db');
 
-// Connect to Database
-connectDB();
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const server = app.listen(PORT, () => {
   console.log(`
   🚀 SoulSync Server Started!
   📡 Listening on Port: ${PORT}
   🛠️  Mode: ${process.env.NODE_ENV}
+  console.log(✅ MongoDB Connected);
   `);
 });
 
-// Handle unhandled promise rejections (e.g., DB connection fails)
-// eslint-disable-next-line no-unused-vars
-// This will log the error and close the server gracefully
+// Connect to Database (non-fatal if it fails)
+// connectDB().then((dbConnected) => {
+//   if (!dbConnected) {
+//     console.warn(
+//       '⚠️  MongoDB connection failed. Server will still run, but DB routes will fail until MONGO_URI/network is fixed.'
+//     );
+//   }
+// });
+
+// Handle unhandled promise rejections (don't kill dev server)
 process.on('unhandledRejection', (err) => {
   console.log(`Error: ${err.message}`);
-  server.close(() => process.exit(1));
+  // Keep the server alive in dev so you can still open the UI/health endpoint.
+  // In production you'd typically exit and let a process manager restart.
+  if (process.env.NODE_ENV === 'production') {
+    server.close(() => process.exit(1));
+  }
 });

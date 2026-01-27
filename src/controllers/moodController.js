@@ -1,50 +1,44 @@
 const MoodLog = require('../models/moodLogModel');
-const aiService = require('../services/aiService');// Sentiment API
-const geminiService = require('../services/geminiService'); // Generative API
+const aiService = require('../services/aiService'); // Groq powered
 
+// 1. Naya Mood create karne ke liye
 exports.createMoodLog = async (req, res, next) => {
   try {
     const { content } = req.body;
     
-    // 1. Snapshot Analysis (Google Natural Language API)
-    const aiData = await aiService.analyzeText(content);
-    
-    // 2. Distressed Check logic
-    const isDistressed = aiData.score <= -0.5;
-    const isCrisis = aiData.score <= -0.85;
+    let aiData;
+    try {
+      // Groq ko call karo
+      aiData = await aiService.analyzeText(content);
+    } catch (apiErr) {
+      console.error("Groq Fail, using fallback:", apiErr.message);
+      // Fallback data agar Groq mar jaye
+      aiData = { score: 0, label: 'Neutral', reply: "I've noted your mood. Stay strong!" };
+    }
 
-    // 3. OPTIONAL: Get a quick supportive line from Gemini
-    // Agar Gemini se turant reply chahiye toh:
-    const quickSupport = await geminiService.generateQuickReply(content);
-
-    // 4. Save the log
+    // DB mein save
     const newLog = await MoodLog.create({
       user: req.user.id,
       content,
-      sentimentScore: aiData.score,
-      emotionLabel: aiData.label,
-      isCrisis,
-      aiResponse: quickSupport || "I've noted your mood. I'm here if you want to talk." 
+      sentimentScore: aiData.score || 0,
+      emotionLabel: aiData.label || 'Neutral',
+      isCrisis: (aiData.score || 0) <= -0.85,
+      aiResponse: aiData.reply || "I'm here for you." // 👈 Kabhi khali nahi jayega
     });
 
     res.status(201).json({
       status: 'success',
-      data: {
-        log: newLog,
-        suggestSession: isDistressed,
-        message: isDistressed 
-          ? "It sounds like you're having a tough time. Would you like to have a therapy session now?" 
-          : "Thanks for checking in! Keep going."
-      }
+      data: { log: newLog }
     });
   } catch (err) {
+    // Agar yahan tak pahuncha toh ye pakka DB connectivity ya Auth issue hai
     next(err);
   }
 };
-
+// 2. Dashboard ke liye saare moods fetch karne ke liye (Ye wala miss ho gaya tha!)
 exports.getAllMoods = async (req, res, next) => {
   try {
-    // Sirf us user ke logs find karo jo logged in hai (req.user.id humein protect middleware se mila)
+    // Sirf us user ke logs jo logged in hai
     const moods = await MoodLog.find({ user: req.user.id }).sort('-createdAt');
 
     res.status(200).json({

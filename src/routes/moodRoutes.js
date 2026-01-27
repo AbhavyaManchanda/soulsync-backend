@@ -9,6 +9,7 @@ router.use(authMiddleware.protect);
 
 router.get('/', moodController.getAllMoods);
 router.post('/', moodController.createMoodLog);
+
 // router.get('/', moodController.getAllMoods); // Baad mein add karenge
 
 module.exports = router;
