@@ -45,6 +45,10 @@ const sessionSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+  ,title: {
+  type: String,
+  default: 'New Reflection'
+}
 });
 
 const Session = mongoose.model('Session', sessionSchema);
