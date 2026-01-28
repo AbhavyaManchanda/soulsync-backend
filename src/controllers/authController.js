@@ -20,12 +20,11 @@ exports.signup = async (req, res, next) => {
 
     const token = signToken(newUser._id);
 
+    const safeUser = { id: newUser._id, name: newUser.name, email: newUser.email };
     res.status(201).json({
       status: 'success',
       token,
-      data: {
-        user: newUser
-      }
+      data: { user: safeUser }
     });
   } catch (err) {
     next(err); // This sends the error to our Global Error Handler!
@@ -33,26 +32,33 @@ exports.signup = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  // 1) Check if email and password exist
-  if (!email || !password) {
-    return next(new AppError('Please provide email and password!', 400));
+    if (!email || !password) {
+      return next(new AppError('Please provide email and password!', 400));
+    }
+
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Login failed: no user with email', email);
+      }
+      return next(new AppError('Incorrect email or password', 401));
+    }
+
+    const ok = await user.correctPassword(password, user.password);
+    if (!ok) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth] Login failed: wrong password for', email);
+      }
+      return next(new AppError('Incorrect email or password', 401));
+    }
+
+    const token = signToken(user._id);
+    res.status(200).json({ status: 'success', token });
+  } catch (err) {
+    next(err);
   }
-
-  // 2) Check if user exists && password is correct
-  // We must explicitly select('+password') because it's hidden by default
-  const user = await User.findOne({ email }).select('+password');
-
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('Incorrect email or password', 401));
-  }
-
-  // 3) If everything is ok, send token to client
-  const token = signToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token
-  });
 };

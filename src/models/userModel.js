@@ -43,16 +43,15 @@ const userSchema = new mongoose.Schema({
 //ensures that your business logic (hashing) is decoupled from your controller.
 userSchema.pre('save', async function(next) {
   // 1. Only run this function if password was actually modified
-  if (!this.isModified('password')) return ;
+  if (!this.isModified('password')) return next();
 
   // 2. Hash the password
   this.password = await bcrypt.hash(this.password, 12);
 
   // 3. Delete passwordConfirm field
   this.passwordConfirm = undefined;
-  
-  // 4. Call next()
-  //next();
+
+  next();
 });
 
 

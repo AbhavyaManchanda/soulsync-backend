@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const userRouter = require('./routes/userRoutes');
@@ -18,26 +19,41 @@ const app = express();
 //Global Middleware
 app.use(helmet());                // Security headers
 // app.use(cors());                  // Enable Cross-Origin requests
+const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+
 app.use(cors({
-  origin:'http://localhost:5173', // 👈 Test ke liye ise 'true' kar do, ye har origin ko allow karega
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS blocked this origin'), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:5173'); // Ya 'true' ki jagah specific origin
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) res.header('Access-Control-Allow-Origin', origin);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200); // 👈 Ye har OPTIONS request ko handle kar lega bina crash kiye
-  }
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
 app.use(express.json());          // Parse JSON bodies
 app.use(morgan('dev'));           // Log requests to console
 
-//To verify the backend is alive
+// Health check: backend alive + DB status
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'UP', message: 'SoulSync Backend is running' });
+  const db = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'UP',
+    message: 'SoulSync Backend is running',
+    db
+  });
 });
 
 

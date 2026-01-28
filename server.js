@@ -1,33 +1,40 @@
 require('dotenv').config();
 const app = require('./src/app');
+const dns = require('dns');
 const connectDB = require('./src/config/db');
-
+dns.setDefaultResultOrder('ipv4first');
 const PORT = process.env.PORT || 5001;
 
-const server = app.listen(PORT, () => {
-  console.log(`
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ JWT_SECRET not set. Login/signup will fail. Add it to .env');
+}
+
+let server;
+
+async function start() {
+  const dbConnected = await connectDB();
+  if (!dbConnected) console.warn('⚠️ MongoDB not connected. Auth and data routes will fail.');
+  else console.log('✅ MongoDB connected');
+
+  server = app.listen(PORT, () => {
+    console.log(`
   🚀 SoulSync Server Started!
   📡 Listening on Port: ${PORT}
   🛠️  Mode: ${process.env.NODE_ENV}
-  console.log(✅ MongoDB Connected);
-  `);
+  📦 DB: ${dbConnected ? 'ready' : 'NOT connected'}
+    `);
+  });
+  return server;
+}
+
+start().catch((err) => {
+  console.error('Failed to start:', err.message);
+  process.exit(1);
 });
 
-// Connect to Database (non-fatal if it fails)
-// connectDB().then((dbConnected) => {
-//   if (!dbConnected) {
-//     console.warn(
-//       '⚠️  MongoDB connection failed. Server will still run, but DB routes will fail until MONGO_URI/network is fixed.'
-//     );
-//   }
-// });
-
-// Handle unhandled promise rejections (don't kill dev server)
 process.on('unhandledRejection', (err) => {
-  console.log(`Error: ${err.message}`);
-  // Keep the server alive in dev so you can still open the UI/health endpoint.
-  // In production you'd typically exit and let a process manager restart.
-  if (process.env.NODE_ENV === 'production') {
+  console.error('Unhandled rejection:', err.message);
+  if (process.env.NODE_ENV === 'production' && server) {
     server.close(() => process.exit(1));
   }
 });

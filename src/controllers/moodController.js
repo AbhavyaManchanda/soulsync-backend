@@ -28,7 +28,10 @@ exports.createMoodLog = async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      data: { log: newLog }
+      data: {
+        log: newLog,
+        suggestSession: !!newLog.isCrisis || (aiData?.score ?? 0) <= -0.5
+      }
     });
   } catch (err) {
     // Agar yahan tak pahuncha toh ye pakka DB connectivity ya Auth issue hai
