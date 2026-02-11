@@ -126,11 +126,22 @@ app.use(morgan('dev'));
 
 // 2. Optimized CORS Setup
 // In URLs ko apne actual Vercel URL se update kar lena
-const allowedOrigins = [
-  'http://localhost:5173', 
-  'http://127.0.0.1:5173',
-  'https://soulsync-friendly-therapist.vercel.app'  
-];
+// const allowedOrigins = [
+//   'http://localhost:5173',
+//   'http://127.0.0.1:5173',
+//   'https://soulsync-friendly-therapist.vercel.app'
+// ];
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173', 
+    'http://127.0.0.1:5173',
+    'https://soulsync-friendly-therapist.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // app.use((req, res, next) => {
 //   const origin = req.headers.origin;
