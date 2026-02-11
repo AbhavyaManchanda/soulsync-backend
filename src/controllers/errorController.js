@@ -1,3 +1,4 @@
+// controllers/errorController.js
 module.exports = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || 'error';
@@ -11,6 +12,7 @@ module.exports = (err, req, res, next) => {
       stack: err.stack
     });
   } else {
+    // Production mode
     res.status(statusCode).json({ status, message });
   }
 };
