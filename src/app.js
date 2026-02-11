@@ -71,6 +71,6 @@ app.use((req, res) => {
   });
 });
 
-// 6. Global Error Handling Middleware (SIRF EK HI RAKHO)
+// 6. Global Error Handling Middleware 
 app.use(globalErrorHandler);
 module.exports = app;

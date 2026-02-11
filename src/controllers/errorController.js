@@ -1,18 +1,19 @@
-// controllers/errorController.js
+const AppError = require('../utils/appError'); 
+
 module.exports = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || 'error';
   const message = err.message || 'Something went wrong';
 
+  console.error('[SERVER ERROR]:', err);  
+
   if (process.env.NODE_ENV?.trim() === 'development') {
-    console.error('[Error]', statusCode, message, err.stack || '');
     res.status(statusCode).json({
       status,
       message,
       stack: err.stack
     });
   } else {
-    // Production mode
     res.status(statusCode).json({ status, message });
   }
 };
