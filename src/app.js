@@ -72,5 +72,14 @@ app.use((req, res) => {
 });
 
 // 6. Global Error Handling Middleware 
-app.use(globalErrorHandler);
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  // Production mein bhi message dikhe isliye err.message direct bhej rahe hain
+  res.status(statusCode).json({
+    status: err.status || 'error',
+    message: err.message || 'Internal Server Error',
+    error: err // 👈 Isse aapko Vercel par asli wajah dikhegi
+  });
+});
+
 module.exports = app;
