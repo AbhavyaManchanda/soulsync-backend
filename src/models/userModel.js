@@ -41,9 +41,9 @@ const userSchema = new mongoose.Schema({
 // --- ENCRYPTION MIDDLEWARE ---
 // Hash the password before saving the user document
 //ensures that your business logic (hashing) is decoupled from your controller.
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
   // 1. Only run this function if password was actually modified
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) return ;
 
   // 2. Hash the password
   this.password = await bcrypt.hash(this.password, 12);
@@ -51,7 +51,7 @@ userSchema.pre('save', async function(next) {
   // 3. Delete passwordConfirm field
   this.passwordConfirm = undefined;
 
-  next();
+  // next(); // No need to call next() in pre('save') when using async/await
 });
 
 
