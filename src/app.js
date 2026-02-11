@@ -18,33 +18,46 @@ const app = express();
 
 //Global Middleware
 app.use(helmet());                // Security headers
-// app.use(cors());                  // Enable Cross-Origin requests
-const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+app.use(cors());                  // Enable Cross-Origin requests
+// const allowedOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS blocked this origin'), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     // allow requests with no origin (like mobile apps or curl requests)
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.indexOf(origin) === -1) {
+//       return callback(new Error('CORS blocked this origin'), false);
+//     }
+//     return callback(null, true);
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
+//   if (origin && allowedOrigins.includes(origin)) res.header('Access-Control-Allow-Origin', origin);
+//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//   if (req.method === 'OPTIONS') return res.sendStatus(200);
+//   next();
+// });
 
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin && allowedOrigins.includes(origin)) res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
+
 app.use(express.json());          // Parse JSON bodies
 app.use(morgan('dev'));           // Log requests to console
+
+app.get('/', (req, res) => {
+  res.send('Backend is running successfully!');
+});
 
 // Health check: backend alive + DB status
 app.get('/health', (req, res) => {
