@@ -5,8 +5,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController');
+// const AppError = require('./utils/appError');
+// const globalErrorHandler = require('./controllers/errorController');
 
 // Routers
 const userRouter = require('./routes/userRoutes');
@@ -71,7 +71,7 @@ app.use((req, res) => {
   });
 });
 
-// 6. Global Error Handling Middleware 
+ 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   // Production mein bhi message dikhe isliye err.message direct bhej rahe hain
