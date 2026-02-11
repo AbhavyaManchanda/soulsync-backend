@@ -4,6 +4,8 @@ const dns = require('dns');
 const connectDB = require('./src/config/db');
 dns.setDefaultResultOrder('ipv4first');
 const PORT = process.env.PORT || 5001;
+// const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 if (!process.env.JWT_SECRET) {
   console.warn('⚠️ JWT_SECRET not set. Login/signup will fail. Add it to .env');

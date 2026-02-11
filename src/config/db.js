@@ -13,7 +13,7 @@ const connectDB = async () => {
     const msg = error.message || '';
     console.error('❌ MongoDB connection failed:', msg);
     if (/whitelist|allowlist|ENOTFOUND|ECONNREFUSED|querySrv/i.test(msg)) {
-      console.error('   Tip: For Atlas, add your IP at https://cloud.mongodb.com → Network Access. For local, use mongodb://127.0.0.1:27017/soulsync');
+      console.error('⚠️ Check MONGO_URI format and network connectivity. If using a cloud DB, ensure your IP is whitelisted.');
     }
     return false;
   }
