@@ -184,10 +184,12 @@ app.use('/api/v1/diet', dietRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 
 // 5. 404 Handler
-app.all(/(.*)/, (req, res, next) => {
-  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+app.use((req, res) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
+  });
 });
-
 // 6. Global Error Handling Middleware
 app.use(globalErrorHandler);
 
