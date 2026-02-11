@@ -173,7 +173,7 @@ app.use('/api/v1/diet', dietRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 
 // 5. 404 Handler
-app.all('*', (req, res, next) => {
+app.all(/(.*)/, (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
