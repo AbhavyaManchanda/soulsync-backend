@@ -129,7 +129,7 @@ app.use(morgan('dev'));
 const allowedOrigins = [
   'http://localhost:5173', 
   'http://127.0.0.1:5173',
-  'https://soulsync-frontend.vercel.app' // 👈 Apna Vercel link yahan check karlo
+  'https://soulsync-friendly-therapist.vercel.app' // 👈 Apna Vercel link yahan check karlo
 ];
 
 app.use((req, res, next) => {
