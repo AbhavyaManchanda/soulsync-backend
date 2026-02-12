@@ -21,14 +21,10 @@ const blogRoutes = require('./routes/blogRoutes');
 const app = express();
 
 // 1. Global Middleware
-app.use(helmet()); 
-app.use(express.json()); 
-app.use(morgan('dev')); 
-
-
 app.use(cors({
   origin: [
     'http://localhost:5173', 
+    'http://localhost:5174',
     'http://127.0.0.1:5173',
     'https://soulsync-friendly-therapist.vercel.app'
   ],
@@ -36,6 +32,15 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// 2. HELMET (With CORS-friendly settings)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" }
+}));
+
+app.use(express.json()); 
+app.use(morgan('dev'));
 
  
 
